@@ -1,0 +1,10 @@
+# ninja log v5
+0	9183	1762170403631631760	/home/e702-5090/pointcloud/dela/DeLA_v2-main/utils/pointnet2_ops_lib/build/temp.linux-x86_64-cpython-39/pointnet2_ops/_ext-src/src/ball_query.o	3bc674ed31690f24
+0	9397	1762170403846631419	/home/e702-5090/pointcloud/dela/DeLA_v2-main/utils/pointnet2_ops_lib/build/temp.linux-x86_64-cpython-39/pointnet2_ops/_ext-src/src/bindings.o	bae05f8eaa0ec687
+0	9763	1762170404212630839	/home/e702-5090/pointcloud/dela/DeLA_v2-main/utils/pointnet2_ops_lib/build/temp.linux-x86_64-cpython-39/pointnet2_ops/_ext-src/src/group_points.o	c1c6c3c696a335d9
+0	9880	1762170404330630652	/home/e702-5090/pointcloud/dela/DeLA_v2-main/utils/pointnet2_ops_lib/build/temp.linux-x86_64-cpython-39/pointnet2_ops/_ext-src/src/sampling.o	a15e55348bc2d43b
+0	10643	1762170405092629444	/home/e702-5090/pointcloud/dela/DeLA_v2-main/utils/pointnet2_ops_lib/build/temp.linux-x86_64-cpython-39/pointnet2_ops/_ext-src/src/interpolate.o	4d6385ac4cf53126
+0	11143	1762170405585628662	/home/e702-5090/pointcloud/dela/DeLA_v2-main/utils/pointnet2_ops_lib/build/temp.linux-x86_64-cpython-39/pointnet2_ops/_ext-src/src/interpolate_gpu.o	3b3f0567bee3d67c
+0	11281	1762170405725628440	/home/e702-5090/pointcloud/dela/DeLA_v2-main/utils/pointnet2_ops_lib/build/temp.linux-x86_64-cpython-39/pointnet2_ops/_ext-src/src/sampling_gpu.o	2d6b1773f4ab5c7a
+0	11814	1762170406258627595	/home/e702-5090/pointcloud/dela/DeLA_v2-main/utils/pointnet2_ops_lib/build/temp.linux-x86_64-cpython-39/pointnet2_ops/_ext-src/src/group_points_gpu.o	2c7bab4fecb1e35e
+0	12127	1762170406572627097	/home/e702-5090/pointcloud/dela/DeLA_v2-main/utils/pointnet2_ops_lib/build/temp.linux-x86_64-cpython-39/pointnet2_ops/_ext-src/src/ball_query_gpu.o	a7e10dc8cd7e580
