@@ -41,7 +41,7 @@ If you find this work useful, please cite our paper:
 ```bibtex
 @article{shi2025pointcra,
   title     = {Channel-Level Relation to Attentive Aggregation with Neighborhood-Homogeneity Constraint for Point Cloud Analysis},
-  author    = {Shi, Jiaqi and Xiao, Jin and Hu, Xiaoguang and Ji, Wenxuan and Jia, Zichong and Long, Zifan and Chen, Tianyou},
+  author    = {Jiaqi Shi, Jin Xiao, Xiaoguang Hu, Wenxuan Ji, Zichong Jia, Zifan Long, and Tianyou Chen},
   journal   = {arXiv preprint},
   year      = {2026}
 }
