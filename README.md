@@ -4,7 +4,7 @@ This is the official code repository for **PointCRA**, a point cloud analysis ne
 
 > **Channel-Level Relation to Attentive Aggregation with Neighborhood-Homogeneity Constraint for Point Cloud Analysis**
 
-Pretrained weights and training logs are available on [Hugging Face][https://huggingface.co/agent9717/PointCRA](https://huggingface.co/agent9717/PointCRA)
+Pretrained weights and training logs are available on [Hugging Face](https://huggingface.co/agent9717/PointCRA)
 
 This repository provides code for two frameworks: **DeLA** and **OpenPoint**.
 
