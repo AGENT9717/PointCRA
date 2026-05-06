@@ -2,7 +2,7 @@
 
 This is the official code repository for **PointCRA**, a point cloud analysis network proposed in our paper:
 
-> **Channel-Level Relation to Attentive Aggregation with Neighborhood-Homogeneity Constraint for Point Cloud Analysis**
+> **Channel-Level Relation to Attentive Aggregation with Neighborhood-Homogeneity Constraint for Point Cloud Analysis** [arxiv](https://arxiv.org/abs/2605.02357)
 
 Pretrained weights and training logs are available on [Hugging Face](https://huggingface.co/agent9717/PointCRA)
 
