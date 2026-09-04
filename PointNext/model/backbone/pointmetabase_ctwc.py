@@ -158,7 +158,7 @@ class CTWC_Block(nn.Module):
         _, fj, knn_idx = self.grouper(p, p, x)       #bnk    dp,fj
         fj =fj #+ pe
         ################ctwc_b
-        scale = torch.tensor(3.0, dtype=torch.float, device=x.device)
+        scale = torch.tensor(1.0, dtype=torch.float, device=x.device)
         c_dist = ctwc_b11(seq,knn_idx,scale)   #bnkc_        seq:bntc
         mask = (c_dist == 1.0).all(dim=-1)
         mask_expanded = mask.unsqueeze(-1)  # 形状: [B, N, K, 1]
