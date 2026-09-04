@@ -11,7 +11,7 @@ from utils.timm.models.layers import DropPath
 from utils.cutils import (generate_spse_matrix, prepare_m, knn_spse, knn_spse_4, init_coor, la_spse_a4,
                           ctwc, ctwc_a1, ctwc_a0, ctwc_a2, ctwc_a2_1, ctwc_a3, ctwc_a4, ctwc_a4_1, ctwc_b1, ctwc_b11,
                           ctwc_b2, ctwc_wc, ctwc_wc1)
-from mamba_ssm.modules.mamba_simple import Mamba
+#from mamba_ssm.modules.mamba_simple import Mamba
 import einops
 import numpy as np
 
@@ -87,30 +87,19 @@ class CTWC_Block(nn.Module):
         self.a = nn.Parameter(torch.ones(weight_dim))  # 控制斜率
         self.b = nn.Parameter(torch.zeros(weight_dim)+0.5)  # 控制中心点
         self.c = nn.Parameter(torch.ones(weight_dim))  # 控制幅度
-        # self.sigmoid_scale = nn.Parameter(torch.ones(weight_dim))
-        # self.sigmoid_shift = nn.Parameter(torch.zeros(weight_dim))
-        self.net = nn.Sequential(
-            nn.Linear(2, 4),
-            nn.ReLU(inplace=True),
-            nn.Linear(4, 4),
-            nn.ReLU(inplace=True),
-            nn.Linear(4, 1),
-            nn.Sigmoid()
-        )
+
         self.temperature = nn.Parameter(torch.tensor(1.0))
 
         self.pool = lambda x: torch.mean(x, dim=-2, keepdim=False)
         self.noise_std = 0.02
 
+
+
     def forward(self, x, seq, knn):
         knn, xyz = knn  #knn bnk   xyz bn3
         B, N, C = x.shape
         _, _, K = knn.shape
-        #res=x
-        if C > 128:
-            scale = 4;
-        else:
-            scale = 4;
+
         knn = knn.long()
 
         batch_idx = torch.arange(B, device=xyz.device).view(B, 1, 1)
@@ -122,27 +111,15 @@ class CTWC_Block(nn.Module):
         #     dim=1,
         #     index=knn.unsqueeze(-1).expand(-1, -1, -1, 4)
         # )
-        center_points = xyz.unsqueeze(2)
-        distances = torch.norm(center_points - neighbor_points, dim=-1)
+        # center_points = xyz.unsqueeze(2)
+        # distances = torch.norm(center_points - neighbor_points, dim=-1)
 
-        # 2. 以每个点的最大距离为基准归一化
-        max_dist = distances.max(dim=-1, keepdim=True)[0]  # [B, N, 1]
-        re_xyz = distances / (max_dist + 1e-8)
+        # # 2. 以每个点的最大距离为基准归一化
+        # max_dist = distances.max(dim=-1, keepdim=True)[0]  # [B, N, 1]
+        # re_xyz = distances / (max_dist + 1e-8)
 
-        ################ctwc_b
-        # print("knn:{},seq:{}".format(knn.shape, seq.shape))
         scale = torch.tensor(1.0, dtype=torch.float, device=x.device)
-        #print("seq",seq.shape)
-
-        # if self.training:
-        #     noise = torch.randn_like(seq) * self.noise_std
-        #     seq = seq + noise
-        # else:
-        #     seq= seq
         c_dist = ctwc_b11(seq, knn, scale)  # bnkc_
-        #c_dist = c_dist**2
-        #c_dist = torch.sigmoid(self.sigmoid_scale * (c_dist - self.sigmoid_shift))
-        # print("C:{},c_dist:{}".format(C,c_dist.shape))
 
         mask = (c_dist == 1.0).all(dim=-1)
         mask_expanded = mask.unsqueeze(-1)  # 形状: [B, N, K, 1]
@@ -170,11 +147,12 @@ class CTWC_Block(nn.Module):
         gamma = torch.exp(3 * (0.7-pn))
         pg = torch.pow(pg, gamma)
 
-        a = self.a.view(*([1] * (c_dist.dim() - 1)), -1)
-        b = self.b.view(*([1] * (c_dist.dim() - 1)), -1)
-        c = torch.sigmoid(self.c).view(*([1] * (c_dist.dim() - 1)), -1)  # c∈[0,1]
-        pc = c * (torch.sigmoid(a * (c_dist - b)) - torch.sigmoid(-a * b))
-        # # ==================== 测试时统计pg和pn分布 ====================
+        la = self.a.view(*([1] * (c_dist.dim() - 1)), -1)
+        lb = self.b.view(*([1] * (c_dist.dim() - 1)), -1)
+        lc = torch.sigmoid(self.c).view(*([1] * (c_dist.dim() - 1)), -1)  # c∈[0,1]
+        pc = lc * (torch.sigmoid(la * (c_dist - lb)) - torch.sigmoid(-la * lb))
+
+        #==================== 测试时统计pg和pn分布 ====================
         # if not self.training:
         #     # 收集统计信息
         #     pg_flat = pg.detach().view(-1)  # 展平所有batch和点的pg值
@@ -198,7 +176,7 @@ class CTWC_Block(nn.Module):
         #     pn_percentiles = torch.quantile(pn_flat, torch.tensor([0.1, 0.25, 0.5, 0.75, 0.9], device=pn_flat.device))
         #
         #     # 计算窄范围比例
-        #     narrow_ratio = narrow_range_mask.float().mean().item()
+        #     #narrow_ratio = narrow_range_mask.float().mean().item()
         #
         #     # 打印当前batch的统计信息
         #     print(f"\n{'=' * 60}")
@@ -214,45 +192,37 @@ class CTWC_Block(nn.Module):
         #     print(f"  分位数 (10%, 25%, 50%, 75%, 90%): {pn_percentiles.cpu().numpy()}")
         #     print(f"\n窄范围比例 (pg_range < 0.01): {narrow_ratio:.4f}")
         #     print(f"{'=' * 60}\n")
-
-        k_xyz = 1 - re_xyz
-        #pg_k=torch.stack([pg, k_xyz], dim=-1)   #bnk2
-        #pg = self.net(pg_k).squeeze(-1)
-        pg = pg * k_xyz
         w = pg.unsqueeze(-1) * pc
-        #w = F.softmax(w / self.temperature, dim=2)
+
         xj = ctwc_wc1(x, knn, w)  # bnkc
         x = self.pool(xj)
 
         x = self.mlp(x.view(B * N, -1)).view(B, N, -1)
-        #x=x+res
+
         c_loss = None
 
         if self.training:
             c_loss = 0.0
-            # c = torch.sigmoid(c)  # c在[0,1]
 
             losses = []
-            #pn_mean = pn.mean()
-            # 目标：pn在0.35-0.45之间
-            # pn_loss = F.relu(pn_mean - 0.55) + F.relu(0.25 - pn_mean)
-            # 1. b应该小于0（最重要！）
-            # 惩罚b>0的情况
-            #losses.append(F.relu(b).mean())  # b>0就惩罚
-            losses.append(F.relu(0.1 - b).mean())  # 惩罚 b < 0.1
-            losses.append(F.relu(b - 0.9).mean())  # 惩罚 b > 0.9
-            # 2. a应该在合理范围（大概0.2-2.0）
-            # 防止a太大或太小
-            losses.append(F.relu(0.2 - a).mean())  # 惩罚a<0.2
-            losses.append(F.relu(a - 10).mean())  # 惩罚a>2.0
+            B, N, K, C = w.shape
 
-            # 3. c应该在合理范围（大概0.2-0.8）
-            losses.append(F.relu(0.2 - c).mean())  # 惩罚c<0.2
-            losses.append(F.relu(c - 0.8).mean())  # 惩罚c>0.8
+            w_flat = w.view(B * N * K, C)
+            w_norm = F.normalize(w_flat, dim=0)
+            cos_sim = torch.mm(w_norm.T, w_norm)
+            mask = ~torch.eye(C, dtype=torch.bool, device=w.device)
+            off_diag = cos_sim[mask]
+            losses.append(off_diag.abs().mean())
+            losses.append(F.relu(lb).mean())
 
-            # 加权组合：b约束最重要
-            weights = [0.5,0.5, 0.1, 0.1, 0.15, 0.15]
-            c_loss = sum(w * l for w, l in zip(weights, losses))#+pn_loss*0.2
+            losses.append(F.relu(0.2 - la).mean())
+            losses.append(F.relu(la - 10).mean())
+
+            losses.append(F.relu(0.2 - lc).mean())
+            losses.append(F.relu(lc - 0.8).mean())
+
+            weights = [0.01, 0.5, 0.1, 0.1, 0.15, 0.15]
+            c_loss = sum(w * l for w, l in zip(weights, losses))
         return x, c_loss
 
 
