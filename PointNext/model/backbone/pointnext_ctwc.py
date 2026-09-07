@@ -362,7 +362,24 @@ class CTWC_Block(nn.Module):
             # w_flat = w
 
             losses = []
+            B, N, K, C = w.shape
 
+            w_flat = w.view(B * N * K, C)
+            w_norm = F.normalize(w_flat, dim=0)
+            cos_sim = torch.mm(w_norm.T, w_norm)
+            mask = ~torch.eye(C, dtype=torch.bool, device=w.device)
+            off_diag = cos_sim[mask]
+            losses.append( off_diag.abs().mean())
+            losses.append(F.relu(lb).mean())
+
+            losses.append(F.relu(0.2 - la).mean())
+            losses.append(F.relu(la - 10).mean())
+
+            losses.append(F.relu(0.2 - lc).mean())
+            losses.append(F.relu(lc - 0.8).mean())
+
+            weights = [0.01,0.5, 0.1, 0.1, 0.15, 0.15]
+            c_loss = sum(w * l for w, l in zip(weights, losses))
 
             # target_magnitude = 0.3
             # magnitude = torch.abs(x).mean()
